@@ -37,10 +37,9 @@ void main() {
     vec4 originalTexture = texture2D(tex0, uv); 
     float mixAmount = calculateMixAmount(hits, mixRadius); // calculate texture distortion at a given texel
 
-    vec2 displacementUV = uv * vec2(.985, .99);
+    vec2 displacementUV = uv * vec2(.985, .98);
     vec4 hitTextureDisplacement = texture2D(tex0, displacementUV); 
-    vec4 hitTextureColor = vec4(hitTextureDisplacement.x * .6, hitTextureDisplacement.y * .01, hitTextureDisplacement.z * .5, hitTextureDisplacement.a);
-    vec4 hitTexture = mix(hitTextureColor, hitTextureDisplacement, 0.3);
+    vec4 hitTexture = vec4(hitTextureDisplacement.r * .4, hitTextureDisplacement.g * .01, hitTextureDisplacement.b * .3, hitTextureDisplacement.a);
 
     gl_FragColor = mix(hitTexture, originalTexture, mixAmount);
 }

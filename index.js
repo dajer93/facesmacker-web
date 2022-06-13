@@ -30,14 +30,11 @@ function setup() {
   canvas = createCanvas(800, 600, WEBGL);
   canvas.position(0, 0);
 
-  // tracker
   faceTracker = new clm.tracker();
   faceTracker.init();
   faceTracker.start(videoInput.elt);
 
   frameRate(30);
-  // noStroke();
-  // color(255, 0, 0);
 }
 
 /*
@@ -48,48 +45,37 @@ function draw() {
 
   if (!canvas || !videoInput) return;
 
-  // console.log(hits);
-
   shader(theShader);
   theShader.setUniform("tex0", videoInput);
-  theShader.setUniform("u_colorFactor", colorFactor);
-  theShader.setUniform("mousePos", [mouseX, 600 - mouseY]);
-
-  theShader.setUniform("mixRadius", 20);
+  theShader.setUniform("mixRadius", 28);
 
   const { minx, miny, maxx, maxy } = getFaceLimits() || {};
 
   const absoluteHits = [];
-  for (let i = 0; i <= hits.length; i = i + 4) {
+  for (let i = 0; i <= hits.length; i = i + 2) {
     if (hits[i] == 0 && hits[i + 1] == 0) return;
 
     let xValue = round(800 - (minx + hits[i] * (maxx - minx)));
     let yValue = round(600 - (miny + hits[i + 1] * (maxy - miny)));
 
     if (xValue && yValue) {
-      absoluteHits.push(xValue, yValue, hits[2], hits[3]);
+      absoluteHits.push(xValue, yValue);
     }
 
-    if (!absoluteHits.length) absoluteHits.push(0, 0, 0, 0);
+    if (!absoluteHits.length) absoluteHits.push(0, 0);
   }
-
+  // provide the array of hits to the shader as a buffer
   theShader.setUniform("hits", absoluteHits);
+
   rect(0, 0, width, (width * videoInput.height) / videoInput.width);
 }
-
-// function mousePressed() {
-//   if (colorFactor < 1) {
-//     colorFactor += 0.1;
-//   } else {
-//     colorFactor = 0;
-//   }
-// }
 
 function mousePressed() {
   const x = 800 - mouseX;
   const y = mouseY;
   const { minx, miny, maxx, maxy } = getFaceLimits() || {};
 
+  // check if click was inside the area of the human face
   if (x > minx && x < maxx && y > miny && y < maxy) {
     let relativeX = (x - minx) / (maxx - minx);
     let relativeY = (y - miny) / (maxy - miny);
@@ -98,10 +84,15 @@ function mousePressed() {
       hits.shift();
     }
 
-    hits.push(relativeX, relativeY, random(0, 1), random(0, 1));
+    hits.push(relativeX, relativeY);
   }
 }
 
+/**
+ * getFaceLimits: returns the topmost, bottommost, & widest points of the face shape
+ * 
+ * @returns Object { minx, maxx, miny, maxy }
+ */
 function getFaceLimits() {
   const points = faceTracker.getCurrentPosition() || [];
 
